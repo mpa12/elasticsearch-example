@@ -102,6 +102,12 @@ volumes:
         driver: local
 ```
 
+Теперь можем запустить наш Docker через команду:
+
+```shell
+./vendor/bin/sail up -d
+```
+
 ## 3. Настройка .env
 
 В файлы `.env` и `.env.example` добавляем переменные для ElasticSearch:
@@ -129,3 +135,144 @@ return [
     // ...
 ];
 ```
+
+## 5. Создание модели Post, по который будем делать поиск
+
+Запустим команду для создания модели сразу с миграцией и фабрикой:
+
+```shell
+./vendor/bin/sail artisan make:model Post -mf
+```
+
+В модели будет два поля `name` и `content`.
+
+Перейдем в модель `Post` и добавим `$fillable`:
+
+```php
+# app/Models/Post.php
+
+<?php
+
+namespace App\Models;
+
+use Database\Factories\PostFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * @property string $name
+ * @property string $content
+ */
+class Post extends Model
+{
+    /** @use HasFactory<PostFactory> */
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'content',
+    ];
+}
+```
+
+Сделаем изменения в миграции:
+
+```php
+# database/migrations/..._create_posts_table.php
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('content');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('posts');
+    }
+};
+```
+
+Перейдем в `PostFactory` для настройки создания фейковых данных:
+
+```php
+# database/factories/PostFactory.php
+
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Post;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<Post>
+ */
+class PostFactory extends Factory
+{
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'name' => $this->faker->words(5, true),
+            'content' => $this->faker->text(),
+        ];
+    }
+}
+```
+
+В `DatabaseSeeder` сделаем запуск создания `Post`:
+
+```php
+# database/seeders/DatabaseSeeder.php
+
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Post;
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        Post::factory(50)->create();
+    }
+}
+```
+
+Теперь можно запустить миграции вместе с нашим сидером:
+
+```shell
+./vendor/bin/sail artisan migrate --seed
+```
+
+Если все сделано правильно, то по итогу в БД должна появиться табличка `posts`, внутри которой должно быть 50 записей:
+
+![img.png](/docs/images/img.png)
