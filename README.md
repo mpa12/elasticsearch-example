@@ -6,7 +6,7 @@ curl -s "https://laravel.build/elasticsearch-example?with=pgsql" | bash
 
 ## 2. Добавляем ElasticSearch в Docker
 
-В файле `docker-compose.yml` добавляем контейнер с `ElasticSearch`:
+В файле `docker-compose.yml` добавляем контейнер с ElasticSearch:
 
 ```yaml
 services:
@@ -104,9 +104,28 @@ volumes:
 
 ## 3. Настройка .env
 
-В файлы `.env` и `.env.example` добавляем переменные для Elasticsearch:
+В файлы `.env` и `.env.example` добавляем переменные для ElasticSearch:
 
 ```
 ELASTICSEARCH_ENABLED=true
 ELASTICSEARCH_HOSTS="elasticsearch:9200"
+```
+
+## 4. Настройки в config/services.php
+
+Добавляем конфигурацию ElasticSearch в `config/services.php`:
+
+```php
+<?php
+
+return [
+    // ...
+
+    'search' => [
+        'enabled' => env('ELASTICSEARCH_ENABLED', false),
+        'hosts' => explode(',', env('ELASTICSEARCH_HOSTS', 'elasticsearch:9200')),
+    ],
+
+    // ...
+];
 ```
