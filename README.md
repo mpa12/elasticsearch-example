@@ -519,3 +519,133 @@ class AppServiceProvider extends ServiceProvider
     // ...
 }
 ```
+
+## 10. Создание репозиториев для поиска
+
+Создадим два базовых репозитория `Repository` и `ElasticsearchRepository`,
+и 1 репозиторий для модели `Post`:
+
+```php
+# app/Parents/Repositories/Repository.php
+
+<?php
+
+namespace App\Parents\Repositories;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Application;
+
+abstract class Repository
+{
+    /**
+     * @var Model $model
+     */
+    protected Model $model;
+
+    public function __construct()
+    {
+        $this->model = app($this->getModelClass());
+    }
+
+    /**
+     * @return string
+     */
+    abstract protected function getModelClass(): string;
+
+    /**
+     * @return Model|Application|mixed
+     */
+    protected function startConditions(): mixed
+    {
+        return clone $this->model;
+    }
+}
+```
+
+```php
+# app/Parents/Repositories/ElasticsearchRepository.php
+
+<?php
+
+namespace App\Parents\Repositories;
+
+use Elastic\Elasticsearch\Client;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Arr;
+
+abstract class ElasticsearchRepository extends Repository
+{
+    private readonly Client $elasticsearch;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->elasticsearch = app(Client::class);
+    }
+
+    public function search(string $searchText, Builder $query = null): Builder
+    {
+        $items = $this->searchOnElasticsearch($searchText);
+
+        $collection = $this->buildCollection($items, $query);
+
+        return $collection;
+    }
+
+    private function searchOnElasticsearch(string $searchText): array
+    {
+        $items = $this->elasticsearch->search([
+            'index' => $this->model->getTable(),
+            'type' => '_doc',
+            'body' => [
+                'query' => [
+                    'multi_match' => [
+                        'fields' => $this->model->getSearchableFields(),
+                        'query' => $searchText,
+                    ],
+                ]
+            ],
+        ])->asArray();
+
+        return $items;
+    }
+
+    private function buildCollection(array $items, Builder $query = null): Builder
+    {
+        $ids = Arr::pluck($items['hits']['hits'], '_id');
+
+        $query = $query ?? $this->startConditions();
+        $query = $query->whereIn($this->model->getKeyName(), $ids);
+
+        return $query;
+    }
+}
+```
+
+Репозиторий для модели `Post`:
+
+```php
+# app/Repositories/PostRepository.php
+
+<?php
+
+namespace App\Repositories;
+
+use App\Models\Post;
+use App\Parents\Repositories\ElasticsearchRepository;
+
+class PostRepository extends ElasticsearchRepository
+{
+    /**
+     * @inheritDoc
+     */
+    protected function getModelClass(): string
+    {
+        return Post::class;
+    }
+}
+```
+
+## 11. Команда для запуска индексации данных
