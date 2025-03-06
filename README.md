@@ -19,8 +19,11 @@ services:
         environment:
             - discovery.type=single-node
             - xpack.security.enabled=false
+            - ES_JAVA_OPTS=-Xms512m -Xmx512m
         volumes:
             - elasticsearch:/usr/share/elasticsearch/data
+        networks:
+            - sail
     # ...
 volumes:
     # ...
@@ -649,3 +652,83 @@ class PostRepository extends ElasticsearchRepository
 ```
 
 ## 11. Команда для запуска индексации данных
+
+Через artisan создадим команду для индексации данных для ElasticSearch:
+
+```shell
+./vendor/bin/sail artisan make:command ReindexCommand --command=search:reindex
+```
+
+Перейдем в файл команды `ReindexCommand` и внесем правки:
+
+```php
+# app/Console/Commands/ReindexCommand.php
+
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\Post;
+use Elastic\Elasticsearch\Client;
+use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Model;
+
+class ReindexCommand extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'search:reindex';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Command for indexing data for ElasticSearch';
+
+    public function __construct(
+        protected readonly Client $elasticsearch,
+    )
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     */
+    public function handle(): void
+    {
+        $this->info('Indexation has start');
+
+        collect([
+            Post::class,
+        ])->map(fn(string $className) => $this->reindex($className));
+
+        $this->info("\n\nDone");
+    }
+
+    private function reindex(string $className): void
+    {
+        $this->info("\nIndexing for $className");
+
+        $this->withProgressBar($className::all(), function (Model $model) {
+            $model->elasticsearchIndex($this->elasticsearch);
+        });
+    }
+}
+```
+
+Запустим индексацию:
+
+```shell
+./vendor/bin/sail artisan search:reindex
+```
+
+Если индексация прошла без ошибок, то можно приступать к следующему пункту.
+
+Проверить, есть ли данные в ElasticSearch можно через приложение Elasticvue.
+
+![img.png](/docs/images/img2.png)
