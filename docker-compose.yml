@@ -48,9 +48,21 @@ services:
                 - '${DB_USERNAME}'
             retries: 3
             timeout: 5s
+    elasticsearch:
+        image: elasticsearch:8.17.0
+        ports:
+            - "9200:9200"
+            - "9300:9300"
+        environment:
+            - discovery.type=single-node
+            - xpack.security.enabled=false
+        volumes:
+            - elasticsearch:/usr/share/elasticsearch/data
 networks:
     sail:
         driver: bridge
 volumes:
     sail-pgsql:
+        driver: local
+    elasticsearch:
         driver: local
