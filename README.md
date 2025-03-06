@@ -273,7 +273,9 @@ class DatabaseSeeder extends Seeder
 ./vendor/bin/sail artisan migrate --seed
 ```
 
-Если все сделано правильно, то по итогу в БД должна появиться табличка `posts`, внутри которой должно быть 50 записей:
+Если все сделано правильно,
+то в результате в БД должна появиться табличка `posts`,
+внутри которой должно быть 50 записей:
 
 ![img.png](/docs/images/img.png)
 
@@ -325,6 +327,90 @@ class AppServiceProvider extends ServiceProvider
                 ->setHosts($app['config']->get('services.search.hosts'))
                 ->build();
         });
+    }
+}
+```
+
+## 8. Создание трейта Searchable
+
+Добавим в проект трей `Searchable`, который будет использоваться в моделях.
+Он позволит автоматически индексировать данные в ElasticSearch:
+
+```php
+# app/Traits/Searchable.php
+
+<?php
+
+namespace App\Traits;
+
+use Elastic\Elasticsearch\Client;
+
+trait Searchable
+{
+    public function elasticsearchIndex(Client $elasticsearchClient): void
+    {
+        $elasticsearchClient->index([
+            'index' => $this->getTable(),
+            'type' => '_doc',
+            'id' => $this->getKey(),
+            'body' => $this->toElasticsearchDocumentArray(),
+        ]);
+    }
+
+    public function elasticsearchDelete(Client $elasticsearchClient): void
+    {
+        $elasticsearchClient->delete([
+            'index' => $this->getTable(),
+            'type' => '_doc',
+            'id' => $this->getKey(),
+        ]);
+    }
+
+    abstract public function toElasticsearchDocumentArray(): array;
+    abstract public function getSearchableFields(): array;
+}
+```
+
+Сделаем использование `Searchable` в модели `Post`:
+
+```php
+# app/Models/Post.php
+
+<?php
+
+namespace App\Models;
+
+use App\Traits\Searchable;
+use Database\Factories\PostFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * @property string $name
+ * @property string $content
+ */
+class Post extends Model
+{
+    /** @use HasFactory<PostFactory> */
+    use HasFactory;
+    use Searchable;
+
+    protected $fillable = [
+        'name',
+        'content',
+    ];
+
+    public function toElasticsearchDocumentArray(): array
+    {
+        return $this->toArray();
+    }
+
+    public function getSearchableFields(): array
+    {
+        return [
+            'name',
+            'content',
+        ];
     }
 }
 ```
