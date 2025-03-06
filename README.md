@@ -101,3 +101,12 @@ volumes:
     elasticsearch:
         driver: local
 ```
+
+## 3. Настройка .env
+
+В файлы `.env` и `.env.example` добавляем переменные для Elasticsearch:
+
+```
+ELASTICSEARCH_ENABLED=true
+ELASTICSEARCH_HOSTS="elasticsearch:9200"
+```
