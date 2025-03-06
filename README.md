@@ -732,3 +732,24 @@ class ReindexCommand extends Command
 Проверить, есть ли данные в ElasticSearch можно через приложение Elasticvue.
 
 ![img.png](/docs/images/img2.png)
+
+## 12. Пример поиска
+
+```php
+# routes/web.php
+
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    $data = app(\App\Repositories\PostRepository::class)
+        ->search('vero')
+        ->get();
+    dd($data->toArray());
+});
+```
+
+Результат поиска:
+
+![img.png](/docs/images/img3.png)

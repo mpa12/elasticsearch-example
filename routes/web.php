@@ -3,5 +3,8 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $data = app(\App\Repositories\PostRepository::class)
+        ->search('vero')
+        ->get();
+    dd($data->toArray());
 });
