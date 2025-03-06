@@ -276,3 +276,11 @@ class DatabaseSeeder extends Seeder
 Если все сделано правильно, то по итогу в БД должна появиться табличка `posts`, внутри которой должно быть 50 записей:
 
 ![img.png](/docs/images/img.png)
+
+## 6. Установка библиотеки ElasticSearch
+
+Установим пакет ElasticSearch через Composer:
+
+```shell
+./vendor/bin/sail composer require elasticsearch/elasticsearch
+```
