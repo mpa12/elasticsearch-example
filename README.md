@@ -414,3 +414,108 @@ class Post extends Model
     }
 }
 ```
+
+## 9. Создание ElasticsearchObserver
+
+Запустим команду для создания `ElasticsearchObserver`:
+
+```shell
+./vendor/bin/sail artisan make:observer ElasticsearchObserver
+```
+
+Перейдем в созданный файл и внесем изменения:
+
+```php
+# app/Observers/ElasticsearchObserver.php
+
+<?php
+
+namespace App\Observers;
+
+use Elastic\Elasticsearch\Client;
+
+class ElasticsearchObserver
+{
+    public function __construct(private Client $elasticsearchClient)
+    {
+        // ...
+    }
+
+    public function saved($model): void
+    {
+        $model->elasticSearchIndex($this->elasticsearchClient);
+    }
+
+    public function deleted($model): void
+    {
+        $model->elasticSearchDelete($this->elasticsearchClient);
+    }
+}
+```
+
+Теперь, когда в моделях используется этот наблюдатель,
+данные будут индексироваться в ElasticSearch при их создании или обновлении.
+При удалении индексация будет очищена.
+
+Сделаем использование `ElasticsearchObserver` в модели `Post` через трейт `Searchable`.
+Для этого в `Searchable` нужно добавить новый метод `bootSearchable`:
+
+```php
+# app/Traits/Searchable.php
+
+<?php
+
+namespace App\Traits;
+
+use App\Observers\ElasticsearchObserver;
+use Elastic\Elasticsearch\Client;
+
+trait Searchable
+{
+    // ...
+
+    public static function bootSearchable(): void
+    {
+        if (config('services.search.enabled')) {
+            static::observe(ElasticsearchObserver::class);
+        }
+    }
+
+    // ...
+}
+```
+
+Так же понадобится вызов `bootSearchable`, его сделаем в `AppServiceProvider`:
+
+```php
+# app/Providers/AppServiceProvider.php
+
+<?php
+
+namespace App\Providers;
+
+use App\Models\Post;
+use Elastic\Elasticsearch\Client;
+use Elastic\Elasticsearch\ClientBuilder;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    // ...
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        $this->bootSearchable();
+    }
+
+    private function bootSearchable(): void
+    {
+        Post::bootSearchable();
+    }
+    
+    // ...
+}
+```
