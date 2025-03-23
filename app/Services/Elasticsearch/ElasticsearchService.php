@@ -178,30 +178,16 @@ class ElasticsearchService extends ParentService
     /**
      * Массовое индексирование
      *
-     * @param Collection $models
+     * @param Collection $bulkCollection
      *
      * @return void
      *
      * @link https://www.elastic.co/guide/en/elasticsearch/client/php-api/current/indexing_documents.html#_bulk_indexing
+     * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
      */
-    public function bulkIndexing(Collection $models): void
+    public function bulkIndexing(Collection $bulkCollection): void
     {
-        $models->chunk(1000)->map(function (Collection $chunk) {
-            $params = ['body' => []];
-
-            foreach ($chunk as $model) {
-                $params['body'][] = [
-                    'index' => [
-                        '_index' => $model->getTable(),
-                        '_id' => $model->getKey()
-                    ]
-                ];
-
-                $params['body'][] = $model->toElasticsearchDocumentArray();
-            }
-
-            $this->elasticsearchClient->bulk($params);
-        });
+        app(ElasticsearchBulkService::class)->bulkIndexing($bulkCollection);
     }
 
     /**

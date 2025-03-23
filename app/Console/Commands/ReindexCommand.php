@@ -2,9 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Dto\Elasticsearch\BulkItemDto;
+use App\Enums\Elasticsearch\BukItemTypeEnum;
 use App\Models\Post;
 use App\Services\Elasticsearch\ElasticsearchService;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 class ReindexCommand extends Command
 {
@@ -51,8 +55,13 @@ class ReindexCommand extends Command
         $this->elasticsearchService->updateOrCreateIndices($className);
         $this->elasticsearchService->openIndex($className);
 
-        $className::chunk(1000, function ($models) {
-            $this->elasticsearchService->bulkIndexing($models);
+        $className::chunk(1000, function (Collection $models) {
+            $bulkCollection = $models->map(fn(Model $model) => new BulkItemDto(
+                BukItemTypeEnum::INDEX,
+                $model,
+            ));
+
+            $this->elasticsearchService->bulkIndexing($bulkCollection);
             $this->output->write('.');
         });
     }
