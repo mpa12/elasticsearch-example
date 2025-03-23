@@ -3,9 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Post;
-use Elastic\Elasticsearch\Client;
+use App\Services\Elasticsearch\ElasticsearchService;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Model;
 
 class ReindexCommand extends Command
 {
@@ -24,7 +23,7 @@ class ReindexCommand extends Command
     protected $description = 'Command for indexing data for ElasticSearch';
 
     public function __construct(
-        protected readonly Client $elasticsearch,
+        protected readonly ElasticsearchService $elasticsearchService,
     )
     {
         parent::__construct();
@@ -48,8 +47,13 @@ class ReindexCommand extends Command
     {
         $this->info("\nIndexing for $className");
 
-        $this->withProgressBar($className::all(), function (Model $model) {
-            $model->elasticsearchIndex($this->elasticsearch);
+        $this->elasticsearchService->closeIndex($className);
+        $this->elasticsearchService->updateOrCreateIndices($className);
+        $this->elasticsearchService->openIndex($className);
+
+        $className::chunk(1000, function ($models) {
+            $this->elasticsearchService->bulkIndexing($models);
+            $this->output->write('.');
         });
     }
 }

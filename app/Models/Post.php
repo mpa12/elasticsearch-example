@@ -34,4 +34,39 @@ class Post extends Model
             'content',
         ];
     }
+
+    public static function getElasticsearchIndexSettings(): array
+    {
+        return [
+            'analysis' => [
+                'analyzer' => [
+                    'custom_analyzer' => [
+                        'type' => 'standard'
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    public static function getElasticsearchIndexMappings(): array
+    {
+        return [
+            'properties' => [
+                'name' => [
+                    'type' => 'text',
+                    'analyzer' => 'standard',
+                    'fields' => [
+                        'keyword' => [
+                            'type' => 'keyword',
+                            'ignore_above' => 255
+                        ]
+                    ]
+                ],
+                'content' => [
+                    'type' => 'text',
+                    'analyzer' => 'standard'
+                ]
+            ]
+        ];
+    }
 }

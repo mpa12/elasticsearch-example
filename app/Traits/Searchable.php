@@ -14,6 +14,17 @@ trait Searchable
         }
     }
 
+    public function elasticsearchIndexCreate(Client $elasticsearchClient): void
+    {
+        $elasticsearchClient->indices()->create([
+            'index' => $this->getTable(),
+            'body' => [
+                'settings' => $this::getElasticsearchIndexSettings(),
+                'mappings' => $this::getElasticsearchIndexMappings(),
+            ],
+        ]);
+    }
+
     public function elasticsearchIndex(Client $elasticsearchClient): void
     {
         $elasticsearchClient->index([
@@ -35,4 +46,6 @@ trait Searchable
 
     abstract public function toElasticsearchDocumentArray(): array;
     abstract public function getSearchableFields(): array;
+    abstract public static function getElasticsearchIndexSettings(): array;
+    abstract public static function getElasticsearchIndexMappings(): array;
 }

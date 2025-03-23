@@ -2,22 +2,26 @@
 
 namespace App\Observers;
 
-use Elastic\Elasticsearch\Client;
+use App\Services\Elasticsearch\ElasticsearchService;
 
 class ElasticsearchObserver
 {
-    public function __construct(private Client $elasticsearchClient)
+    public function __construct(
+        private readonly ElasticsearchService $elasticsearchService,
+    )
     {
         // ...
     }
 
     public function saved($model): void
     {
-        $model->elasticSearchIndex($this->elasticsearchClient);
+        $models = collect([$model]);
+        $this->elasticsearchService->bulkIndexing($models);
     }
 
     public function deleted($model): void
     {
-        $model->elasticSearchDelete($this->elasticsearchClient);
+        $models = collect([$model]);
+        $this->elasticsearchService->bulkIndexing($models);
     }
 }
