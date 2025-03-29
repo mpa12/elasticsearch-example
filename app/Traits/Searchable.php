@@ -14,6 +14,7 @@ trait Searchable
         }
     }
 
+    // TODO: Сделать создание индексов через миграции
     public function elasticsearchIndexCreate(Client $elasticsearchClient): void
     {
         $elasticsearchClient->indices()->create([
@@ -25,6 +26,7 @@ trait Searchable
         ]);
     }
 
+    // TODO: Сделать индексацию через ElasticsearchService
     public function elasticsearchIndex(Client $elasticsearchClient): void
     {
         $elasticsearchClient->index([
@@ -46,6 +48,9 @@ trait Searchable
 
     abstract public function toElasticsearchDocumentArray(): array;
     abstract public function getSearchableFields(): array;
+
+    // TODO: Вынести в миграции
     abstract public static function getElasticsearchIndexSettings(): array;
+    // TODO: Вынести в миграции
     abstract public static function getElasticsearchIndexMappings(): array;
 }
