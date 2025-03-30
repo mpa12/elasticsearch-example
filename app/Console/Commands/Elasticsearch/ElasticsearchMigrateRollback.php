@@ -31,6 +31,7 @@ class ElasticsearchMigrateRollback extends Command
      */
     public function handle(): void
     {
+        // Получение миграций для отката
         $migrationsToRollback = $this->migrationsToRollback();
 
         if (!$migrationsToRollback->count()) {
@@ -40,16 +41,22 @@ class ElasticsearchMigrateRollback extends Command
 
         (new Info($this->output))->render('Rolling back migrations.');
 
+        // Откат миграций
         $migrationsToRollback->map(function (ElasticsearchMigrationModel $migration) {
             $filename = $migration->migration;
             $this->components->twoColumnDetail($filename, '<fg=yellow>RUNNING</>');
+
             try {
+                // Откат миграции
                 $this->downMigration($migration);
+
+                // Удаление миграции из списка запущенных
                 $migration->delete();
             } catch (Exception $exception) {
                 $this->components->twoColumnDetail($filename, '<fg=red>FAIL</>');
                 throw $exception;
             }
+
             $this->components->twoColumnDetail($filename, '<fg=green>DONE</>');
         });
     }
@@ -75,14 +82,17 @@ class ElasticsearchMigrateRollback extends Command
      */
     private function downMigration(ElasticsearchMigrationModel $migration): void
     {
+        // Получение пути до миграции
         $file = base_path("elasticsearch/migrations/$migration->migration");
 
+        // Получение объекта миграции
         $migration = include $file;
 
         if (!$migration instanceof ElasticsearchMigration) {
             throw new Exception("Migration file '$file' must extend " . ElasticsearchMigration::class);
         }
 
+        // Откат миграции
         $migration->down();
     }
 }

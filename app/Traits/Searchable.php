@@ -3,10 +3,13 @@
 namespace App\Traits;
 
 use App\Observers\ElasticsearchObserver;
-use Elastic\Elasticsearch\Client;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 trait Searchable
 {
+    use SoftDeletes;
+
     public static function bootSearchable(): void
     {
         if (config('services.search.enabled')) {
@@ -14,43 +17,11 @@ trait Searchable
         }
     }
 
-    // TODO: Сделать создание индексов через миграции
-    public function elasticsearchIndexCreate(Client $elasticsearchClient): void
+    public function scopeNeedsReindex(Builder $query): void
     {
-        $elasticsearchClient->indices()->create([
-            'index' => $this->getTable(),
-            'body' => [
-                'settings' => $this::getElasticsearchIndexSettings(),
-                'mappings' => $this::getElasticsearchIndexMappings(),
-            ],
-        ]);
-    }
-
-    // TODO: Сделать индексацию через ElasticsearchService
-    public function elasticsearchIndex(Client $elasticsearchClient): void
-    {
-        $elasticsearchClient->index([
-            'index' => $this->getTable(),
-            'type' => '_doc',
-            'id' => $this->getKey(),
-            'body' => $this->toElasticsearchDocumentArray(),
-        ]);
-    }
-
-    public function elasticsearchDelete(Client $elasticsearchClient): void
-    {
-        $elasticsearchClient->delete([
-            'index' => $this->getTable(),
-            'type' => '_doc',
-            'id' => $this->getKey(),
-        ]);
+        $query->where('needs_reindex', true);
     }
 
     abstract public function toElasticsearchDocumentArray(): array;
     abstract public function getSearchableFields(): array;
-
-    // TODO: Вынести в миграции
-    abstract public static function getElasticsearchIndexSettings(): array;
-    // TODO: Вынести в миграции
-    abstract public static function getElasticsearchIndexMappings(): array;
 }

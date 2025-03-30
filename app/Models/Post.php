@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @property string $name
  * @property string $content
+ * @property boolean $needs_reindex
  */
 class Post extends Model
 {
@@ -20,6 +21,7 @@ class Post extends Model
     protected $fillable = [
         'name',
         'content',
+        'needs_reindex',
     ];
 
     public function toElasticsearchDocumentArray(): array

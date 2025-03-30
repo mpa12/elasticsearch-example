@@ -29,7 +29,7 @@ class ElasticsearchBulkService extends ParentService
      */
     public function bulkIndexing(Collection $bulkCollection): void
     {
-        $bulkCollection->chunk(1000)->map(function (Collection $chunk) {
+        $bulkCollection->chunk(20_000)->map(function (Collection $chunk) {
             $params = ['body' => []];
 
             /** @var BulkItemDto $bulkItem */

@@ -33,8 +33,8 @@ class ElasticsearchMigrate extends Command
      */
     public function handle(): void
     {
+        // Получение миграций, которые надо запустить
         $migrations = $this->migrationsToUp();
-        // TODO: Сделать команду для отката миграций
 
         if (!$migrations->count()) {
             (new Info($this->output))->render('Nothing to migrate.');
@@ -43,26 +43,35 @@ class ElasticsearchMigrate extends Command
 
         (new Info($this->output))->render('Running migrations.');
 
+        // Запуск миграций
         $migrations->map(function (string $path) {
             $filename = basename($path);
             $this->components->twoColumnDetail($filename, '<fg=yellow>RUNNING</>');
+
             try {
+                // Запуск миграции
                 $this->upMigration($path);
+
+                // Сохранение информации об успешном запуске миграции
                 ElasticsearchMigrationModel::create(['migration' => $filename]);
             } catch (Exception $exception) {
                 $this->components->twoColumnDetail($filename, '<fg=red>FAIL</>');
                 throw $exception;
             }
+
             $this->components->twoColumnDetail($filename, '<fg=green>DONE</>');
         });
     }
 
     private function migrationsToUp(): Collection
     {
+        // Получение всех файлов с миграциями
         $files = collect(File::glob(base_path('elasticsearch/migrations/*.php')));
 
+        // Получение завершенных миграций
         $completedMigrations = app(ElasticsearchMigrationRepository::class)->completedMigrations();
 
+        // Получение миграций, которые еще не выполнялись
         $migrationsToUp = $files->filter(function (string $path) use ($completedMigrations) {
             $filename = basename($path);
             return !$completedMigrations->contains($filename);
@@ -76,12 +85,14 @@ class ElasticsearchMigrate extends Command
      */
     private function upMigration(string $file): void
     {
+        // Получение объекта миграции
         $migration = include $file;
 
         if (!$migration instanceof ElasticsearchMigration) {
             throw new Exception("Migration file '$file' must extend " . ElasticsearchMigration::class);
         }
 
+        // Запуск миграции
         $migration->up();
     }
 }
