@@ -25,7 +25,7 @@ class ElasticsearchMigrate extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Launching elasticsearch migrations';
 
     /**
      * Execute the console command.
