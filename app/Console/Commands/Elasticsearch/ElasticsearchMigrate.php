@@ -3,8 +3,12 @@
 namespace App\Console\Commands\Elasticsearch;
 
 use App\Parents\Elasticsearch\ElasticsearchMigration;
+use App\Models\ElasticsearchMigration as ElasticsearchMigrationModel;
+use App\Repositories\ElasticsearchMigrationRepository;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Console\View\Components\Info;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 
 class ElasticsearchMigrate extends Command
@@ -29,20 +33,42 @@ class ElasticsearchMigrate extends Command
      */
     public function handle(): void
     {
-        $files = File::glob(base_path('elasticsearch/migrations/*.php'));
-        // TODO: Сделать сохранение выполненных миграций в БД
+        $migrations = $this->migrationsToUp();
         // TODO: Сделать команду для отката миграций
 
-        foreach ($files as $file) {
-            $this->components->twoColumnDetail("<fg=yellow>$file</>", '<fg=yellow>RUNNING</>');
+        if (!$migrations->count()) {
+            (new Info($this->output))->render('Nothing to migrate.');
+            return;
+        }
+
+        (new Info($this->output))->render('Running migrations.');
+
+        $migrations->map(function (string $path) {
+            $filename = basename($path);
+            $this->components->twoColumnDetail($filename, '<fg=yellow>RUNNING</>');
             try {
-                $this->upMigration($file);
+                $this->upMigration($path);
+                ElasticsearchMigrationModel::create(['migration' => $filename]);
             } catch (Exception $exception) {
-                $this->components->twoColumnDetail("<fg=red>$file</>", '<fg=red>FAIL</>');
+                $this->components->twoColumnDetail($filename, '<fg=red>FAIL</>');
                 throw $exception;
             }
-            $this->components->twoColumnDetail("<fg=green>$file</>", '<fg=green>DONE</>');
-        }
+            $this->components->twoColumnDetail($filename, '<fg=green>DONE</>');
+        });
+    }
+
+    private function migrationsToUp(): Collection
+    {
+        $files = collect(File::glob(base_path('elasticsearch/migrations/*.php')));
+
+        $completedMigrations = app(ElasticsearchMigrationRepository::class)->completedMigrations();
+
+        $migrationsToUp = $files->filter(function (string $path) use ($completedMigrations) {
+            $filename = basename($path);
+            return !$completedMigrations->contains($filename);
+        });
+
+        return $migrationsToUp;
     }
 
     /**
