@@ -1,24 +1,24 @@
 <?php
 
-namespace App\Console\Commands\Elasticsearch;
+namespace App\Console\Commands\Elastic;
 
-use App\Parents\Elasticsearch\ElasticsearchMigration;
-use App\Models\ElasticsearchMigration as ElasticsearchMigrationModel;
-use App\Repositories\ElasticsearchMigrationRepository;
+use App\Parents\Elastic\ElasticMigration;
+use App\Models\ElasticMigration as ElasticsearchMigrationModel;
+use App\Repositories\ElasticMigrationRepository;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Console\View\Components\Info;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 
-class ElasticsearchMigrate extends Command
+class ElasticMigrate extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'elasticsearch:migrate';
+    protected $signature = 'elastic:migrate';
 
     /**
      * The console command description.
@@ -69,7 +69,7 @@ class ElasticsearchMigrate extends Command
         $files = collect(File::glob(base_path('elasticsearch/migrations/*.php')));
 
         // Получение завершенных миграций
-        $completedMigrations = app(ElasticsearchMigrationRepository::class)->completedMigrations();
+        $completedMigrations = app(ElasticMigrationRepository::class)->completedMigrations();
 
         // Получение миграций, которые еще не выполнялись
         $migrationsToUp = $files->filter(function (string $path) use ($completedMigrations) {
@@ -88,8 +88,8 @@ class ElasticsearchMigrate extends Command
         // Получение объекта миграции
         $migration = include $file;
 
-        if (!$migration instanceof ElasticsearchMigration) {
-            throw new Exception("Migration file '$file' must extend " . ElasticsearchMigration::class);
+        if (!$migration instanceof ElasticMigration) {
+            throw new Exception("Migration file '$file' must extend " . ElasticMigration::class);
         }
 
         // Запуск миграции

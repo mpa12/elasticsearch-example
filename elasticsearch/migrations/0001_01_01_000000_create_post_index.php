@@ -1,16 +1,18 @@
 <?php
 
-use App\Parents\Elasticsearch\ElasticsearchMigration;
+use App\Parents\Elastic\ElasticMigration;
 
-return new class extends ElasticsearchMigration
+return new class extends ElasticMigration
 {
     public function up(): void
     {
-        // Здесь размещается код, который будет выполняться при запуске команды elasticsearch:migrate
+        // TODO: Сделать создание индекса
+        // Здесь размещается код, который будет выполняться при запуске команды elastic:migrate
     }
 
     public function down(): void
     {
-        // Здесь размещается код, который будет выполняться при запуске команды elasticsearch:migrate:rollback
+        // TODO: Сделать удаление индекса
+        // Здесь размещается код, который будет выполняться при запуске команды elastic:migrate:rollback
     }
 };

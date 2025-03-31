@@ -2,13 +2,13 @@
 
 namespace App\Repositories;
 
-use App\Models\ElasticsearchMigration;
-use App\Models\ElasticsearchMigration as ElasticsearchMigrationModel;
+use App\Models\ElasticMigration;
+use App\Models\ElasticMigration as ElasticsearchMigrationModel;
 use App\Parents\Repositories\Repository as ParentRepository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
-class ElasticsearchMigrationRepository extends ParentRepository
+class ElasticMigrationRepository extends ParentRepository
 {
     public function completedMigrations(): Collection
     {
@@ -36,6 +36,6 @@ class ElasticsearchMigrationRepository extends ParentRepository
      */
     protected function getModelClass(): string
     {
-        return ElasticsearchMigration::class;
+        return ElasticMigration::class;
     }
 }

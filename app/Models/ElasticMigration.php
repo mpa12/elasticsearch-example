@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $id
  * @property string $migration
  */
-class ElasticsearchMigration extends Model
+class ElasticMigration extends Model
 {
     public $timestamps = false;
 

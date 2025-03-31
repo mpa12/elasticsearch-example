@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enums\Elasticsearch;
+namespace App\Enums\Elastic;
 
 enum BukItemTypeEnum
 {

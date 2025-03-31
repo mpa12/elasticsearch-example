@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Dto\Elasticsearch;
+namespace App\Dto\Elastic;
 
-use App\Enums\Elasticsearch\BukItemTypeEnum;
+use App\Enums\Elastic\BukItemTypeEnum;
 use App\Parents\Dto\Dto as ParentDto;
 use Illuminate\Database\Eloquent\Model;
 

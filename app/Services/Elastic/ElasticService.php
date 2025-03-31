@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Elasticsearch;
+namespace App\Services\Elastic;
 
 use App\Parents\Services\Service as ParentService;
 use Elastic\Elasticsearch\Client;
@@ -9,7 +9,7 @@ use Elastic\Elasticsearch\Exception\MissingParameterException;
 use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Illuminate\Support\Collection;
 
-class ElasticsearchService extends ParentService
+class ElasticService extends ParentService
 {
     public function __construct(
         protected Client $elasticsearchClient,
@@ -187,7 +187,7 @@ class ElasticsearchService extends ParentService
      */
     public function bulkIndexing(Collection $bulkCollection): void
     {
-        app(ElasticsearchBulkService::class)->bulkIndexing($bulkCollection);
+        app(ElasticBulkService::class)->bulkIndexing($bulkCollection);
     }
 
     /**

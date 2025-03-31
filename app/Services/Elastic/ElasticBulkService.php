@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Services\Elasticsearch;
+namespace App\Services\Elastic;
 
-use App\Dto\Elasticsearch\BulkItemDto;
-use App\Enums\Elasticsearch\BukItemTypeEnum;
+use App\Dto\Elastic\BulkItemDto;
+use App\Enums\Elastic\BukItemTypeEnum;
 use App\Parents\Services\Service as ParentService;
 use Elastic\Elasticsearch\Client;
 use Illuminate\Support\Collection;
 
-class ElasticsearchBulkService extends ParentService
+class ElasticBulkService extends ParentService
 {
     public function __construct(
         protected Client $elasticsearchClient,

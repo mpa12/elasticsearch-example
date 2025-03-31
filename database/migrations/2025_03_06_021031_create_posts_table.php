@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->text('content');
             $table->timestamps();
+            $table->softDeletes();
+            $table->boolean('needs_reindex')->default(true);
         });
     }
 

@@ -3,9 +3,9 @@
 namespace App\Repositories;
 
 use App\Models\Post;
-use App\Parents\Repositories\ElasticsearchRepository;
+use App\Parents\Repositories\ElasticRepository;
 
-class PostRepository extends ElasticsearchRepository
+class PostRepository extends ElasticRepository
 {
     /**
      * @inheritDoc

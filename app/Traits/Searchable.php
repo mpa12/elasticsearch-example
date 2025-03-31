@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use App\Observers\ElasticsearchObserver;
+use App\Observers\Elastic\ElasticObserver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -13,7 +13,7 @@ trait Searchable
     public static function bootSearchable(): void
     {
         if (config('services.search.enabled')) {
-            static::observe(ElasticsearchObserver::class);
+            static::observe(ElasticObserver::class);
         }
     }
 

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('elasticsearch_migrations', function (Blueprint $table) {
+        Schema::create('elastic_migrations', function (Blueprint $table) {
             $table->id();
             $table->string('migration');
         });
@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('elasticsearch_migrations');
+        Schema::dropIfExists('elastic_migrations');
     }
 };

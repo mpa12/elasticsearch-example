@@ -397,8 +397,7 @@ class ElasticsearchObserver
 
 namespace App\Traits;
 
-use App\Observers\ElasticsearchObserver;
-use Elastic\Elasticsearch\Client;
+use App\Observers\Elastic\ElasticObserver;
 
 trait Searchable
 {
@@ -407,7 +406,7 @@ trait Searchable
     public static function bootSearchable(): void
     {
         if (config('services.search.enabled')) {
-            static::observe(ElasticsearchObserver::class);
+            static::observe(ElasticObserver::class);
         }
     }
 
@@ -564,9 +563,9 @@ abstract class ElasticsearchRepository extends Repository
 namespace App\Repositories;
 
 use App\Models\Post;
-use App\Parents\Repositories\ElasticsearchRepository;
+use App\Parents\Repositories\ElasticRepository;
 
-class PostRepository extends ElasticsearchRepository
+class PostRepository extends ElasticRepository
 {
     /**
      * @inheritDoc

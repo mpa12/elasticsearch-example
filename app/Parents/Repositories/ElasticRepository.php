@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 
-abstract class ElasticsearchRepository extends Repository
+abstract class ElasticRepository extends Repository
 {
     private readonly Client $elasticsearch;
 

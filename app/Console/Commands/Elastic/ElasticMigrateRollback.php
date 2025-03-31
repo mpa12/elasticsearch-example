@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Console\Commands\Elasticsearch;
+namespace App\Console\Commands\Elastic;
 
-use App\Models\ElasticsearchMigration as ElasticsearchMigrationModel;
-use App\Parents\Elasticsearch\ElasticsearchMigration;
-use App\Repositories\ElasticsearchMigrationRepository;
+use App\Models\ElasticMigration as ElasticsearchMigrationModel;
+use App\Parents\Elastic\ElasticMigration;
+use App\Repositories\ElasticMigrationRepository;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Console\View\Components\Info;
 use Illuminate\Support\Collection;
 
-class ElasticsearchMigrateRollback extends Command
+class ElasticMigrateRollback extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'elasticsearch:migrate:rollback {--step=}';
+    protected $signature = 'elastic:migrate:rollback {--step=}';
 
     /**
      * The console command description.
@@ -68,7 +68,7 @@ class ElasticsearchMigrateRollback extends Command
     {
         $step = $this->option('step');
 
-        $migrationsToRollback = app(ElasticsearchMigrationRepository::class)->migrationsToRollback($step);
+        $migrationsToRollback = app(ElasticMigrationRepository::class)->migrationsToRollback($step);
 
         return $migrationsToRollback;
     }
@@ -88,8 +88,8 @@ class ElasticsearchMigrateRollback extends Command
         // Получение объекта миграции
         $migration = include $file;
 
-        if (!$migration instanceof ElasticsearchMigration) {
-            throw new Exception("Migration file '$file' must extend " . ElasticsearchMigration::class);
+        if (!$migration instanceof ElasticMigration) {
+            throw new Exception("Migration file '$file' must extend " . ElasticMigration::class);
         }
 
         // Откат миграции
